@@ -1,26 +1,46 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as dotenv from 'dotenv';
-import * as schema from './../../../migration/schema';
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-dotenv.config({ path: '.env' });
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-if (!process.env.DATABASE_URL) {
-    console.log("No DataBase Url Found");
-}
+export const workspaces = pgTable('workspace', {
+    id: uuid('id').defaultRandom().primaryKey().notNull(),
+    createdAt: timestamp('created_at', {
+        withTimezone: true,
+        mode: 'string',
+    }),
+    workspacesOwner: uuid('workspace_owner').notNull(),
+    title: text('title').notNull(),
+    inconId: text('incon_id').notNull(),
+    data: text('data'),
+    inTrash: text('in_Trash'),
+    logo: text('logo'),
+    bannerUrl: text('banner_url')
+})
 
-const client = postgres(process.env.DATABASE_URL as string, { max: 1 });
-const db = drizzle(client, { schema });
-const migratedb = async () => {
-    try {
-        console.log('Migrating client');
-        await migrate(db, { migrationsFolder: 'migration' })
-        console.log('Migrating Succesfully');
-    } catch (error) {
-        console.log('Migrating Failed ', error)
-    }
-}
-migratedb();
+export const folders = pgTable('folders', {
+    id: uuid('id').defaultRandom().primaryKey().notNull(),
+    createdAt: timestamp('created_at', {
+        withTimezone: true,
+        mode: 'string',
+    }),
+    workspacesOwner: uuid('workspace_owner').notNull(),
+    title: text('title').notNull(),
+    inconId: text('incon_id').notNull(),
+    data: text('data'),
+    inTrash: text('in_Trash'),
+    bannerUrl: text('banner_url'),
+    workspacesId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' })
+})
 
-
-export default db;
+export const files = pgTable('files', {
+    id: uuid('id').defaultRandom().primaryKey().notNull(),
+    createdAt: timestamp('created_at', {
+        withTimezone: true,
+        mode: 'string',
+    }),
+    workspacesOwner: uuid('workspace_owner').notNull(),
+    title: text('title').notNull(),
+    inconId: text('incon_id').notNull(),
+    data: text('data'),
+    inTrash: text('in_Trash'),
+    bannerUrl: text('banner_url'),
+    folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'cascade' })
+})
